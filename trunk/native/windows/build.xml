@@ -1,0 +1,67 @@
+<project name="WinAPI" default="help" basedir=".">
+  <description>WinAPI</description>
+  <!-- set global properties for this build -->
+  <property name="src" location="."/>
+  <property name="build" location="."/>
+  <property name="classpath" location="../../classes"/>
+  <import file="../../base.xml"/>
+  <property name="JFWINJNIVERSION" value="0.1"/>
+
+  <target name="gcc32" description="compile the source">
+    <exec executable="javah">
+      <arg value="-classpath"/>
+      <arg value="${classpath}"/>
+      <arg value="javaforce.jni.WinAPI"/>
+    </exec>
+    <exec command="gcc-3 -mno-cygwin -c arrays.c -Ic:\cygwin\usr\include -o arrays.o"/>
+    <exec command="gcc-3 -mno-cygwin -c sound.c -Ic:\cygwin\usr\include -o sound.o"/>
+    <exec command="gcc-3 -mno-cygwin -c vfw.c -Ic:\cygwin\usr\include -o vfw.o"/>
+    <exec command="gcc-3 -mno-cygwin -c window.c -Ic:\cygwin\usr\include -o window.o"/>
+    <exec command="gcc-3 -mno-cygwin -shared sound.o arrays.o vfw.o window.o -o jfwin32.dll -lwinmm -lvfw32 -lstrmiids -luser32 -lgdi32 -lole32 -Wl,--kill-at"/>
+  </target>
+
+  <!-- gcc64 ??? -->
+
+  <target name="cl32" description="compile the source (32bit)">
+    <exec executable="javah">
+      <arg value="-classpath"/>
+      <arg value="${classpath}"/>
+      <arg value="javaforce.jni.WinAPI"/>
+    </exec>
+    <exec command="cl /c arrays.c /I'c:\Program Files (x86)\Java\jdk7\include' /I'c:\Program Files (x86)\Java\jdk7\include\win32'"/>
+    <exec command="cl /c sound.c /I'c:\Program Files (x86)\Java\jdk7\include' /I'c:\Program Files (x86)\Java\jdk7\include\win32'"/>
+    <exec command="cl /c vfw.c /I'c:\Program Files (x86)\Java\jdk7\include' /I'c:\Program Files (x86)\Java\jdk7\include\win32'"/>
+    <exec command="cl /c window.c /I'c:\Program Files (x86)\Java\jdk7\include' /I'c:\Program Files (x86)\Java\jdk7\include\win32'"/>
+    <exec command="cl /c videoInput.cpp /I."/>
+    <exec command="cl /c vi.cpp /I'c:\Program Files (x86)\Java\jdk7\include' /I'c:\Program Files (x86)\Java\jdk7\include\win32'"/>
+    <exec command="cl /LD arrays.obj sound.obj vfw.obj window.obj videoInput.obj vi.obj strmiids.lib user32.lib gdi32.lib ole32.lib oleaut32.lib winmm.lib vfw32.lib /Fejfwin32.dll"/>
+  </target>
+
+  <target name="cl64" description="compile the source (64bit)">
+    <exec executable="javah">
+      <arg value="-classpath"/>
+      <arg value="${classpath}"/>
+      <arg value="javaforce.jni.WinAPI"/>
+    </exec>
+    <exec command="cl /c arrays.c /I'c:\Program Files (x86)\Java\jdk7\include' /I'c:\Program Files (x86)\Java\jdk7\include\win32'"/>
+    <exec command="cl /c sound.c /I'c:\Program Files (x86)\Java\jdk7\include' /I'c:\Program Files (x86)\Java\jdk7\include\win32'"/>
+    <exec command="cl /c vfw.c /I'c:\Program Files (x86)\Java\jdk7\include' /I'c:\Program Files (x86)\Java\jdk7\include\win32'"/>
+    <exec command="cl /c window.c /I'c:\Program Files (x86)\Java\jdk7\include' /I'c:\Program Files (x86)\Java\jdk7\include\win32'"/>
+    <exec command="cl /c videoInput.cpp /I."/>
+    <exec command="cl /c vi.cpp /I'c:\Program Files (x86)\Java\jdk7\include' /I'c:\Program Files (x86)\Java\jdk7\include\win32'"/>
+    <exec command="cl /LD arrays.obj sound.obj vfw.obj window.obj videoInput.obj vi.obj strmiids.lib user32.lib gdi32.lib ole32.lib oleaut32.lib winmm.lib vfw32.lib /Fejfwin64.dll"/>
+  </target>
+
+  <target name="help">
+    <echo>ant gcc32 - compile using gcc (cygwin) [incomplete]</echo>
+    <echo>ant cl32 - compile using cl (windows sdk) 32bit</echo>
+    <echo>ant cl64 - compile using cl (windows sdk) 64bit</echo>
+  </target>
+
+  <target name="clean" description="deletes compiled files">
+    <delete>
+      <fileset dir="." includes="**/*.class"/>
+      <fileset dir="." includes="**/*.jar"/>
+    </delete>
+  </target>
+</project>
