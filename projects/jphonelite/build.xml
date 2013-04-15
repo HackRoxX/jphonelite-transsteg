@@ -1,0 +1,145 @@
+<project name="jphonelite" default="jar" basedir=".">
+  <description>jphonelite</description>
+  <!-- set global properties for this build -->
+  <property name="src" location="."/>
+  <property name="build" location="classes"/>
+  <property name="classpath" location="../../classes"/>
+  <import file="../../base.xml"/>
+  <property name="JPHONELITEVERSION" value="1.0.1"/>
+
+  <target name="compile" description="compile the source">
+    <!-- Compile the java code from ${src} into ${build} -->
+    <mkdir dir="${build}"/>
+    <javac srcdir="${src}" destdir="${build}" deprecation="true" target="1.5" source="1.5" debug="true">
+      <compilerarg value="-Xlint:unchecked"/>
+      <classpath path="${classpath}"/>
+    </javac>
+  </target>
+
+  <target name="pre-signed-jar" depends="compile" description="build jar file">
+    <!-- Build jar file from class files -->
+    <jar destfile="jphonelite.jar" includes="*.class" basedir="${build}">
+      <fileset dir="." includes="*.png"/>
+      <fileset dir="." includes="readme.txt"/>
+      <fileset dir="../../native/windows" includes="*.dll"/>
+      <manifest>
+        <attribute name="Main-Class" value="PhoneApp"/>
+      </manifest>
+    </jar>
+  </target>
+
+  <available property="keyexists" file="keystore.key"/>
+
+  <target name="genkeys" unless="keyexists" description="generate SSL keys">
+    <genkey alias="jphonelite" storepass="password" keystore="keystore.key"
+      keyalg="RSA" validity="365">
+      <dname>
+        <param name="CN" value="JavaForce"/>
+        <param name="OU" value="Terminal"/>
+        <param name="O"  value="jphonelite.sourceforge.net"/>
+        <param name="C"  value="CA"/>
+      </dname>
+    </genkey>
+  </target>
+
+  <target name="jar" depends="genkeys,pre-signed-jar" description="sign jar file">
+    <signjar jar="jphonelite.jar" alias="jphonelite" storepass="password" keystore="keystore.key" signedjar="jphonelite-signed.jar"/>
+    <signjar jar="../../jars/javaforce.jar" alias="jphonelite" storepass="password" keystore="keystore.key" signedjar="javaforce-signed.jar"/>
+    <copy file="../../jars/javaforce.jar" todir="."/>
+  </target>
+
+  <!-- sudo ant install -->
+  <target name="install" description="install files">
+    <copy file="jphonelite.jar" todir="/usr/share/java"/>
+    <copy file="jphonelite" todir="/usr/bin"/>
+    <chmod file="/usr/bin/jphonelite" perm="+x"/>
+    <copy file="jphonelite.desktop" todir="/usr/share/applications"/>
+    <copy file="jphonelite.png" todir="/usr/share/icons/hicolor/48x48/apps"/>
+    <copy file="jphonelite.html" todir="/usr/share/jhelp"/>
+  </target>
+
+  <target name="deb" description="create deb package">
+    <exec executable="jdeb">
+      <arg value="jphonelite-${JPHONELITEVERSION}_all.deb"/>
+    </exec>
+    <copy file="jphonelite-${JPHONELITEVERSION}_all.deb" todir="../../repo/ubuntu"/>
+  </target>
+
+  <target name="rpm" description="create rpm package">
+    <exec executable="jrpm">
+      <arg value="jphonelite.spec"/>
+    </exec>
+    <copy file="jphonelite-${JPHONELITEVERSION}-1.noarch.rpm" todir="../../repo/fedora"/>
+  </target>
+
+  <target name="release-bin" depends="jar" description="create release zip file">
+    <copy file="../../jars/javaforce.jar" todir="."/>
+    <zip destfile="jphonelite-${JPHONELITEVERSION}.zip">
+      <fileset dir=".">
+        <include name="j*.jar"/>
+        <include name="*.html"/>
+        <include name="*.php"/>
+        <include name="*.js"/>
+        <include name="*.jnlp"/>
+        <include name="readme.txt"/>
+        <include name="jphonelite"/>
+        <include name="run.bat"/>
+      </fileset>
+      <fileset dir="../.." includes="license.txt"/>
+    </zip>
+    <move file="jphonelite-${JPHONELITEVERSION}.zip" todir="/home/pquiring/zips"/>
+  </target>
+
+  <target name="release-src" depends="" description="create release zip file">
+    <copy file="whatsnew.txt" tofile="desktop-whatsnew.txt"/>
+    <zip destfile="jphonelite-src-${JPHONELITEVERSION}.zip">
+      <fileset dir="../..">
+        <include name="src/javaforce/voip/*.java"/>
+        <include name="src/javaforce/jni/*.java"/>
+        <include name="src/javaforce/linux/*.java"/>
+        <exclude name="src/javaforce/voip/SIPServer*.java"/>
+        <exclude name="src/javaforce/voip/CallDetailsServer.java"/>
+        <include name="src/javaforce/codec/g729a/*.java"/>
+        <include name="src/javaforce/*.java"/>
+        <include name="base.*"/>
+        <include name="build.xml"/>
+        <include name="license.txt"/>
+        <include name="nbproject/*.xml"/>
+        <include name="projects/jphonelite/*.java"/>
+        <include name="projects/jphonelite/*.js"/>
+        <include name="projects/jphonelite/*.form"/>
+        <include name="projects/jphonelite/*.jnlp"/>
+        <include name="projects/jphonelite/*.txt"/>
+        <include name="projects/jphonelite/*.png"/>
+        <include name="projects/jphonelite/*.html"/>
+        <include name="projects/jphonelite/*.php"/>
+        <include name="projects/jphonelite/*.xml"/>
+        <include name="projects/jphonelite/nbproject/*.xml"/>
+        <include name="include/*.h"/>
+        <include name="native/windows/*.c"/>
+        <include name="native/windows/*.h"/>
+        <include name="native/windows/*.cpp"/>
+        <include name="native/windows/*.xml"/>
+        <include name="native/linux/*.c"/>
+        <include name="native/linux/*.h"/>
+        <include name="native/linux/*.lst"/>
+        <include name="native/linux/*.xml"/>
+        <include name="native/linux/deb/*"/>
+        <include name="native/linux/*.spec"/>
+      </fileset>
+    </zip>
+    <move file="jphonelite-src-${JPHONELITEVERSION}.zip" todir="/home/pquiring/zips"/>
+  </target>
+
+  <target name="javadoc" description="generate java documentation">
+    <javadoc sourcefiles="*.java" destdir="javadoc" classpath="${classpath}"/>
+  </target>
+
+  <target name="clean" description="deletes compiled files">
+    <delete>
+      <fileset dir="." includes="**/*.class"/>
+      <fileset dir="." includes="**/*.jar"/>
+      <fileset dir="." includes="**/*.key"/>
+    </delete>
+  </target>
+</project>

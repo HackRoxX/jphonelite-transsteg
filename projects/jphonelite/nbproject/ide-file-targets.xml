@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?><project basedir=".." name="jphonelite-IDE">
+    <!-- TODO: edit the following target according to your needs -->
+    <!-- (more info: http://www.netbeans.org/kb/articles/freeform-config.html#runsingle) -->
+    <target name="run-selected-file-in-jphonelite">
+        <fail unless="run.class">Must set property 'run.class'</fail>
+        <java classname="${run.class}" failonerror="true" fork="true">
+            <classpath>
+                <pathelement path="../../classes;../jvnclite;../vfwapi"/>
+            </classpath>
+        </java>
+    </target>
+</project>

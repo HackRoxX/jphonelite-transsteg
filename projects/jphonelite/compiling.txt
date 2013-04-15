@@ -1,0 +1,13 @@
+It is best to compile from the command prompt using ANT.  You'll need Flex SDK in your PATH to compile the flash swf component.
+
+cd /
+ant
+cd /projects/jphonelite
+ant jar
+ant swf
+
+I've included NetBeans project files.  There are 2 projects that need to be built in this order.
+/nbproject
+/projects/jphonelite/nbproject
+
+Good luck!

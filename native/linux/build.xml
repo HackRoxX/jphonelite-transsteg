@@ -1,0 +1,103 @@
+<project name="jni" default="compile" basedir=".">
+  <description>jni</description>
+  <!-- set global properties for this build -->
+  <property name="src" location="."/>
+  <property name="build" location="."/>
+  <property name="classpath" location="../../classes"/>
+  <import file="../../base.xml"/>
+  <property name="JFJNIVERSION" value="0.14"/>
+
+  <target name="compile" description="compile the source">
+    <exec executable="javah">
+      <arg value="-classpath"/>
+      <arg value="${classpath}"/>
+      <arg value="javaforce.jni.LnxAPI"/>
+    </exec>
+    <exec executable="pkg-config" outputproperty="pkgconfig-gst-cflags">
+      <arg value="--cflags"/>
+      <arg value="gstreamer-1.0"/>
+      <arg value="gstreamer-plugins-base-1.0"/>
+    </exec>
+    <exec executable="pkg-config" outputproperty="pkgconfig-gst-libs">
+      <arg value="--libs"/>
+      <arg value="gstreamer-1.0"/>
+      <arg value="gstreamer-plugins-base-1.0"/>
+    </exec>
+    <exec executable="pkg-config" outputproperty="pkgconfig-x11-cflags">
+      <arg value="--cflags"/>
+      <arg value="x11"/>
+    </exec>
+    <exec executable="pkg-config" outputproperty="pkgconfig-x11-libs">
+      <arg value="--libs"/>
+      <arg value="x11"/>
+    </exec>
+    <!-- exec command works - but is deprecated - pkgconfig needs to be split up into seperate args -->
+    <exec command="gcc -c pam.c -I/usr/lib/jvm/java-7-openjdk-i386/include -o pam.o"/>
+    <exec command="gcc -c arrays.c -I/usr/lib/jvm/java-7-openjdk-i386/include -o arrays.o"/>
+    <exec command="gcc -c x11.c ${pkgconfig-x11-cflags} -I/usr/lib/jvm/java-7-openjdk-i386/include -o x11.o"/>
+    <exec command="gcc -c gst.c ${pkgconfig-gst-cflags} -I/usr/lib/jvm/java-7-openjdk-i386/include -o gst.o"/>
+    <exec command="gcc -c jpeg.c -I/usr/lib/jvm/java-7-openjdk-i386/include -o jpeg.o"/>
+    <exec command="gcc -shared jni.o arrays.o x11.o gst.o jpeg.o ${pkgconfig-gst-libs} ${pkgconfig-x11-libs} -I/usr/lib/jvm/java-7-openjdk-i386/include -o libjfjni.so -lpam -lgstapp-1.0 -lgstvideo-1.0 -lgstaudio-1.0 -lgstpbutils-1.0 -ljpeg"/>
+    <exec executable="gcc">
+      <arg value="openpty.c"/>
+      <arg value="-o"/>
+      <arg value="openpty"/>
+      <arg value="-lpthread"/>
+    </exec>
+  </target>
+
+  <!-- sudo ant install32 -->
+  <target name="install32" description="install files">
+    <copy file="libjfjni.so" todir="/usr/lib"/>
+    <copy file="openpty" todir="/usr/bin"/>
+    <chmod file="/usr/bin/openpty" perm="+x"/>
+  </target>
+
+  <!-- sudo ant install64 -->
+  <target name="install64" description="install files">
+    <copy file="libjfjni.so" todir="/usr/lib64"/>
+    <copy file="openpty" todir="/usr/bin"/>
+    <chmod file="/usr/bin/openpty" perm="+x"/>
+  </target>
+
+  <target name="deb32" description="create deb package">
+    <exec executable="jdeb">
+      <arg value="jfjni-${JFJNIVERSION}_i386.deb"/>
+      <arg value="deb"/>
+      <arg value="files-32.lst"/>
+    </exec>
+    <copy file="jfjni-${JFJNIVERSION}_i386.deb" todir="../../repo/ubuntu"/>
+  </target>
+
+  <target name="deb64" description="create deb package">
+    <exec executable="jdeb">
+      <arg value="jfjni-${JFJNIVERSION}_x86_64.deb"/>
+      <arg value="deb"/>
+      <arg value="files-64.lst"/>
+    </exec>
+    <copy file="jfjni-${JFJNIVERSION}_x86_64.deb" todir="../../repo/ubuntu"/>
+  </target>
+
+  <target name="rpm32" description="create rpm package">
+    <exec executable="jrpm">
+      <arg value="jni32.spec"/>
+      <arg value="files-32.lst"/>
+    </exec>
+    <copy file="jfjni-${JFJNIVERSION}-1.i686.rpm" todir="../../repo/fedora"/>
+  </target>
+
+  <target name="rpm64" description="create rpm package">
+    <exec executable="jrpm">
+      <arg value="jni64.spec"/>
+      <arg value="files-64.lst"/>
+    </exec>
+    <copy file="jfjni-${JFJNIVERSION}-1.x86_64.rpm" todir="../../repo/fedora"/>
+  </target>
+
+  <target name="clean" description="deletes compiled files">
+    <delete>
+      <fileset dir="." includes="**/*.class"/>
+      <fileset dir="." includes="**/*.jar"/>
+    </delete>
+  </target>
+</project>

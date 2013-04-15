@@ -1,0 +1,79 @@
+<project name="javaforce" default="jar" basedir=".">
+  <description>JavaForce SDK</description>
+  <!-- set global properties for this build -->
+  <property name="src" location="src"/>
+  <property name="build" location="classes"/>
+  <import file="base.xml"/>
+
+  <target name="compile" description="compile the source">
+    <!-- Compile the java code from ${src} into ${build} -->
+    <mkdir dir="${build}"/>
+    <mkdir dir="jars"/>
+    <javac srcdir="${src}" destdir="${build}" target="1.5" source="1.5" debug="true">
+      <compilerarg value="-Xlint:unchecked"/>
+      <classpath>
+        <fileset dir="jars" includes="*.jar"/>
+        <fileset dir="/usr/share/java" includes="jogl2.jar"/>
+      </classpath>
+    </javac>
+  </target>
+
+  <target name="javadoc" description="generate java documentation">
+    <javadoc sourcepath="src" destdir="javadoc"/>
+  </target>
+
+  <target name="jar" depends="compile" description="build jar file">
+    <!-- Build jar file from class files -->
+    <jar destfile="jars/javaforce.jar" includes="**/*.class" basedir="${build}">
+    </jar>
+  </target>
+
+  <!-- sudo -E ant install -->
+  <target name="install" description="install files">
+    <copy file="jars/javaforce.jar" todir="/usr/share/java"/>
+    <copy file="jbus-call" todir="/usr/bin"/>
+    <chmod file="/usr/bin/jbus-call" perm="+x"/>
+    <copy file="jbus-client" todir="/usr/bin"/>
+    <chmod file="/usr/bin/jbus-client" perm="+x"/>
+<!-- some utils - saves from having to make seperate packages -->
+    <copy file="jsudo" todir="/usr/bin"/>
+    <chmod file="/usr/bin/jsudo" perm="+x"/>
+    <copy file="jsudo-ask" todir="/usr/bin"/>
+    <chmod file="/usr/bin/jsudo-ask" perm="+x"/>
+    <copy file="jopen" todir="/usr/bin"/>
+    <chmod file="/usr/bin/jopen" perm="+x"/>
+    <copy file="jfs" todir="/usr/bin"/>
+    <chmod file="/usr/bin/jfs" perm="+x"/>
+    <copy file="jfr" todir="/usr/bin"/>
+    <chmod file="/usr/bin/jfr" perm="+x"/>
+    <copy file="pngalpha" todir="/usr/bin"/>
+    <chmod file="/usr/bin/pngalpha" perm="+x"/>
+    <copy file="update-desktop-database" todir="/bin"/>
+    <chmod file="/bin/update-desktop-database" perm="+x"/>
+    <copy file="jsmbget" todir="/bin"/>
+    <chmod file="/bin/jsmbget" perm="+x"/>
+    <copy file="jservice" todir="/usr/bin"/>
+    <chmod file="/usr/bin/jservice" perm="+x"/>
+  </target>
+
+  <target name="deb" description="create deb package">
+    <exec executable="jdeb">
+      <arg value="javaforce-${VERSION}_all.deb"/>
+    </exec>
+    <copy file="javaforce-${VERSION}_all.deb" todir="repo/ubuntu"/>
+  </target>
+
+  <target name="rpm" description="create rpm package">
+    <exec executable="jrpm">
+      <arg value="javaforce.spec"/>
+    </exec>
+    <copy file="javaforce-${VERSION}-1.noarch.rpm" todir="repo/fedora"/>
+  </target>
+
+  <target name="clean" description="deletes compiled files">
+    <delete>
+      <fileset dir="classes/javaforce" includes="**/*.class"/>
+    </delete>
+  </target>
+
+</project>
